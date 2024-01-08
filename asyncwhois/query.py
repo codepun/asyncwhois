@@ -139,14 +139,17 @@ class Query:
                 and whois_server != server
                 and not whois_server.startswith("http")
             ):
-                # recursive call to find more authoritative server
-                authoritative_output = self._do_query(
-                    whois_server, data, self.whois_server_regex
-                )
-                # check for empty responses; only update query_output if
-                # there was a complete response from the authoritative server
-                if authoritative_output:
-                    query_output = authoritative_output
+                try:
+                    # recursive call to find more authoritative server
+                    authoritative_output = self._do_query(
+                        whois_server, data, self.whois_server_regex
+                    )
+                    # check for empty responses; only update query_output if
+                    # there was a complete response from the authoritative server
+                    if authoritative_output:
+                        query_output = authoritative_output
+                except Exception as e:
+                    pass
         # return the WHOIS query output
         return query_output
 
