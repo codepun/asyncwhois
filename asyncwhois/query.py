@@ -29,6 +29,7 @@ class Query:
         authoritative_only: bool = True,
         proxy_url: str = None,
         timeout: int = 10,
+        only_primary_query: bool = False,
     ):
         self.server = server
         self.authoritative_only = authoritative_only
@@ -37,6 +38,7 @@ class Query:
         self.authoritative_server = ""
         self.query_output = ""
         self.query_chain = ""
+        self.only_primary_query = only_primary_query
 
     @staticmethod
     def _find_match(regex: str, blob: str) -> str:
@@ -131,25 +133,26 @@ class Query:
             if not self.authoritative_only:
                 # concatenate query outputs
                 self.query_chain += query_output
-            # parse response for the referred WHOIS server name
-            whois_server = self._find_match(regex, query_output)
-            whois_server = whois_server.lower()
-            if (
-                whois_server
-                and whois_server != server
-                and not whois_server.startswith("http")
-            ):
-                try:
-                    # recursive call to find more authoritative server
-                    authoritative_output = self._do_query(
-                        whois_server, data, self.whois_server_regex
-                    )
-                    # check for empty responses; only update query_output if
-                    # there was a complete response from the authoritative server
-                    if authoritative_output:
-                        query_output = authoritative_output
-                except Exception as e:
-                    pass
+            if not self.only_primary_query:
+                # parse response for the referred WHOIS server name
+                whois_server = self._find_match(regex, query_output)
+                whois_server = whois_server.lower()
+                if (
+                    whois_server
+                    and whois_server != server
+                    and not whois_server.startswith("http")
+                ):
+                    try:
+                        # recursive call to find more authoritative server
+                        authoritative_output = self._do_query(
+                            whois_server, data, self.whois_server_regex
+                        )
+                        # check for empty responses; only update query_output if
+                        # there was a complete response from the authoritative server
+                        if authoritative_output:
+                            query_output = authoritative_output
+                    except Exception as e:
+                        pass
         # return the WHOIS query output
         return query_output
 
@@ -167,25 +170,26 @@ class Query:
             if not self.authoritative_only:
                 # concatenate query outputs
                 self.query_chain += query_output
-            # parse response for the referred WHOIS server name
-            whois_server = self._find_match(regex, query_output)
-            whois_server = whois_server.lower()
-            if (
-                whois_server
-                and whois_server != server
-                and not whois_server.startswith("http")
-            ):
-                try:
-                    # recursive call to find the authoritative server
-                    authoritative_output = await self._aio_do_query(
-                        whois_server, data, self.whois_server_regex
-                    )
-                    # check for empty responses; only update query_output if
-                    # there was a complete response from the authoritative server
-                    if authoritative_output:
-                        query_output = authoritative_output
-                except Exception as e:
-                    pass
+            if not self.only_primary_query:
+                # parse response for the referred WHOIS server name
+                whois_server = self._find_match(regex, query_output)
+                whois_server = whois_server.lower()
+                if (
+                    whois_server
+                    and whois_server != server
+                    and not whois_server.startswith("http")
+                ):
+                    try:
+                        # recursive call to find the authoritative server
+                        authoritative_output = await self._aio_do_query(
+                            whois_server, data, self.whois_server_regex
+                        )
+                        # check for empty responses; only update query_output if
+                        # there was a complete response from the authoritative server
+                        if authoritative_output:
+                            query_output = authoritative_output
+                    except Exception as e:
+                        pass
         # return the WHOIS query output
         return query_output
 
@@ -198,8 +202,9 @@ class DomainQuery(Query):
         authoritative_only: bool = True,
         proxy_url: str = None,
         timeout: int = 10,
+        only_primary_query: bool = False,
     ):
-        super().__init__(server, authoritative_only, proxy_url, timeout)
+        super().__init__(server, authoritative_only, proxy_url, timeout, only_primary_query)
         self.domain = domain
 
     @classmethod
@@ -210,8 +215,9 @@ class DomainQuery(Query):
         authoritative_only: bool = True,
         proxy_url: str = None,
         timeout: int = 10,
+        only_primary_query: bool = False,
     ):
-        _self = cls(domain, server, authoritative_only, proxy_url, timeout)
+        _self = cls(domain, server, authoritative_only, proxy_url, timeout, only_primary_query)
         data = domain + "\r\n"
         if not _self.server:
             server_regex = _self.refer_regex
@@ -230,8 +236,9 @@ class DomainQuery(Query):
         authoritative_only: bool = True,
         proxy_url: str = None,
         timeout: int = 10,
+        only_primary_query: bool = False,
     ):
-        _self = cls(domain, server, authoritative_only, proxy_url, timeout)
+        _self = cls(domain, server, authoritative_only, proxy_url, timeout, only_primary_query)
         data = domain + "\r\n"
         if not _self.server:
             server_regex = _self.refer_regex
@@ -251,8 +258,9 @@ class NumberQuery(Query):
         authoritative_only: bool = True,
         proxy_url: str = None,
         timeout: int = 10,
+        only_primary_query: bool = False,
     ):
-        super().__init__(server, authoritative_only, proxy_url, timeout)
+        super().__init__(server, authoritative_only, proxy_url, timeout, only_primary_query)
         self.whois_server_regex = r"ReferralServer: *whois://(.+)"
         self.ip = ip
 
@@ -264,8 +272,9 @@ class NumberQuery(Query):
         authoritative_only: bool = False,
         proxy_url: str = None,
         timeout: int = 10,
+        only_primary_query: bool = False,
     ):
-        _self = cls(ip, server, authoritative_only, proxy_url, timeout)
+        _self = cls(ip, server, authoritative_only, proxy_url, timeout, only_primary_query)
         data = ip + "\r\n"
         if ":" in ip:  # ipv6
             _self.refer_regex = r"whois: *(.+)"
@@ -281,8 +290,9 @@ class NumberQuery(Query):
         authoritative_only: bool = False,
         proxy_url: str = None,
         timeout: int = 10,
+        only_primary_query: bool = False,
     ):
-        _self = cls(ip, server, authoritative_only, proxy_url, timeout)
+        _self = cls(ip, server, authoritative_only, proxy_url, timeout, only_primary_query)
         data = ip + "\r\n"
         if ":" in ip:  # ipv6
             _self.refer_regex = r"whois: *(.+)"

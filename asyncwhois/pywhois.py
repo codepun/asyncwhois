@@ -63,7 +63,7 @@ class DomainLookup(Lookup):
 
     @classmethod
     def whois_domain(
-        cls, domain: str, authoritative_only: bool, proxy_url: str, timeout: int
+        cls, domain: str, authoritative_only: bool, proxy_url: str, timeout: int, only_primary_query: bool
     ):
         _self = cls()
         # get TLD
@@ -75,7 +75,7 @@ class DomainLookup(Lookup):
         # submit the WHOIS query to the server
         registered_domain = _self.tld_extract_result.registered_domain
         query = DomainQuery.new(
-            registered_domain, server, authoritative_only, proxy_url, timeout
+            registered_domain, server, authoritative_only, proxy_url, timeout, only_primary_query
         )
         # parse the raw text output from the WHOIS server
         parser.parse(query.query_output)
@@ -85,7 +85,7 @@ class DomainLookup(Lookup):
 
     @classmethod
     async def aio_whois_domain(
-        cls, domain: str, authoritative_only: bool, proxy_url: str, timeout: int
+        cls, domain: str, authoritative_only: bool, proxy_url: str, timeout: int, only_primary_query: bool
     ):
         _self = cls()
         # get TLD
@@ -97,7 +97,7 @@ class DomainLookup(Lookup):
         # submit the WHOIS query to the server
         registered_domain = _self.tld_extract_result.registered_domain
         query = await DomainQuery.new_aio(
-            registered_domain, server, authoritative_only, proxy_url, timeout
+            registered_domain, server, authoritative_only, proxy_url, timeout, only_primary_query
         )
         # parse the raw text output from the WHOIS server
         parser.parse(query.query_output)

@@ -27,6 +27,7 @@ def whois_domain(
     authoritative_only: bool = False,
     proxy_url: str = None,
     timeout: int = 10,
+    only_primary_query: bool = False,
 ) -> DomainLookup:
     """
     Performs domain lookups with WHOIS.
@@ -39,7 +40,7 @@ def whois_domain(
     :param timeout: Connection timeout. Default is 10 seconds.
     :return: instance of DomainLookup
     """
-    result = DomainLookup.whois_domain(domain, authoritative_only, proxy_url, timeout)
+    result = DomainLookup.whois_domain(domain, authoritative_only, proxy_url, timeout, only_primary_query)
     return result
 
 
@@ -48,6 +49,7 @@ async def aio_whois_domain(
     authoritative_only: bool = False,
     proxy_url: str = None,
     timeout: int = 10,
+    only_primary_query: bool = False,
 ) -> DomainLookup:
     """
     Performs asynchronous domain lookups with WHOIS.
@@ -61,7 +63,7 @@ async def aio_whois_domain(
     :return: instance of DomainLookup
     """
     result = await DomainLookup.aio_whois_domain(
-        domain, authoritative_only, proxy_url, timeout
+        domain, authoritative_only, proxy_url, timeout, only_primary_query
     )
     return result
 
