@@ -37,7 +37,7 @@ class Query:
         self.timeout = timeout
         self.authoritative_server = ""
         self.query_output = ""
-        self.query_chain = ""
+        self.query_chain = []
         self.only_primary_query = only_primary_query
 
     @staticmethod
@@ -132,7 +132,7 @@ class Query:
             query_output = self._send_and_recv(conn, data)
             if not self.authoritative_only:
                 # concatenate query outputs
-                self.query_chain += query_output
+                self.query_chain.append(query_output)
             if not self.only_primary_query:
                 # parse response for the referred WHOIS server name
                 whois_server = self._find_match(regex, query_output)
@@ -169,7 +169,7 @@ class Query:
             )
             if not self.authoritative_only:
                 # concatenate query outputs
-                self.query_chain += query_output
+                self.query_chain.append(query_output)
             if not self.only_primary_query:
                 # parse response for the referred WHOIS server name
                 whois_server = self._find_match(regex, query_output)
